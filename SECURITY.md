@@ -4,6 +4,8 @@ Local Hands gives a browser-based AI conversation a privileged execution path on
 
 ## Recommended defaults
 
+The built-in defaults are deliberately restrictive: `safe` mode, shell disabled, and process control disabled.
+
 - Start with `mode: "safe"`.
 - Keep `allowed_roots` as narrow as practical.
 - Leave shell and process control disabled until you actually need them.
