@@ -40,10 +40,10 @@ RESULTS_CLOSE = "[[" + "/" + PROTOCOL_VERSION + ":RESULTS]]"
 DEFAULT_CONFIG = {
     "host": "127.0.0.1",
     "port": 8787,
-    "mode": "workspace_full_access",
+    "mode": "safe",
     "allowed_roots": [str(Path.home())],
-    "shell_enabled": True,
-    "process_control": True,
+    "shell_enabled": False,
+    "process_control": False,
     "max_inline_bytes": 32768,
     "command_timeout_seconds": 120,
 }
@@ -80,7 +80,7 @@ def load_config():
     except (OSError, ValueError):
         pass
     if cfg.get("mode") not in MODES:
-        cfg["mode"] = "workspace_full_access"
+        cfg["mode"] = "safe"
     try:
         cfg["port"] = int(cfg.get("port", 8787))
     except (TypeError, ValueError):
