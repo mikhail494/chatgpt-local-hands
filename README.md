@@ -1,125 +1,180 @@
-# Local Hands for ChatGPT
+<div align="center">
 
-Run local tools from regular **ChatGPT in your browser** (no API, no Codex, no
-credits). The LLM stays in the browser tab. This project adds a local
-`127.0.0.1:8787` HTTP bridge (Python stdlib) and a Chrome extension that
-watches completed assistant messages on `chatgpt.com`, executes the requested
-tools, and types the result back into the chat.
+# ChatGPT Local Hands
 
+**Give regular ChatGPT controlled access to your local Windows machine.**
+
+Chrome extension → localhost bridge → filesystem, shell, processes, logs and browser actions.
+
+![Python](https://img.shields.io/badge/Python-stdlib%20only-111111?style=flat-square)
+![Chrome](https://img.shields.io/badge/Chrome-MV3-111111?style=flat-square)
+![Bridge](https://img.shields.io/badge/Bridge-127.0.0.1%3A8787-111111?style=flat-square)
+![Platform](https://img.shields.io/badge/Platform-Windows-111111?style=flat-square)
+
+</div>
+
+---
+
+## What it is
+
+**ChatGPT Local Hands** is a lightweight local execution layer for `chatgpt.com`.
+
+A Chrome MV3 extension watches completed assistant messages for a strict `LOCAL_HANDS_V1` tool block. It forwards approved local operations to a Python bridge bound to `127.0.0.1`, executes them on your machine, then sends the structured result back into the same ChatGPT conversation.
+
+The model stays in the normal ChatGPT browser tab. You do **not** need an OpenAI API key, a custom LLM client, Selenium/CDP, or a second browser session.
+
+## Architecture
+
+```mermaid
+flowchart LR
+    A[ChatGPT conversation] -->|LOCAL_HANDS_V1 call| B[Chrome MV3 extension]
+    B -->|localhost HTTP| C[Python bridge :8787]
+    C --> D[Filesystem]
+    C --> E[PowerShell / CMD]
+    C --> F[Processes]
+    C --> G[Logs]
+    B --> H[Browser tabs / scripting]
+    C -->|structured result| B
+    B -->|RESULT message| A
 ```
-C:\Users\MG\Desktop\chatgpt-local-hands\
-  bridge.py                  the whole bridge server (stdlib only)
-  config.json                mode, allowed_roots, shell/process switches
-  output\                    full-output spill files for oversized results
-  bridge.log                 bridge log
-  bridge.pid                 pid of the running bridge
-  tests\test_bridge.py       auto-tests A-K
-  START_LOCAL_HANDS.bat      start (prevents double launch), leaves it running
-  STOP_LOCAL_HANDS.bat       stop only the PID from bridge.pid
-  STATUS_LOCAL_HANDS.bat     RUNNING / DEGRADED / STOPPED + /health
-  extension\                 Chrome MV3 extension (load unpacked)
-    manifest.json
-    background.js            service worker: bridge HTTP, browser.* tools, dedupe
-    content.js               chatgpt.com only: DOM watch, composer, send
-    popup.html/js/css        status, address, mode, pause, initialize, emergency stop
-  PROTOCOL.md                exact tool JSON schema and message protocol
+
+## Local tool surface
+
+```text
+fs.read        fs.list        fs.stat
+fs.write       fs.patch       fs.mkdir
+fs.move        fs.copy        fs.delete
+shell.powershell             shell.cmd
+process.list   process.start  process.kill
+file.tail
 ```
 
-## How it works
+The extension also exposes selected `browser.*` actions through Chrome APIs.
 
-1. The bridge listens on `http://127.0.0.1:8787` (loopback only, never a LAN
-   or wildcard address). It is intentionally localhost-only with no
-   authentication: any process already running locally on this PC can call it.
-2. On `chatgpt.com`, the content script watches assistant turns. It never acts
-   while the model is still generating (no visible Stop button **and** text
-   stable for 1 s). It parses only the latest completed assistant message and
-   **never** executes blocks from user messages.
-3. The extension's service worker executes `fs.*`, `shell.*`, `process.*`,
-   `file.tail` by calling the bridge over localhost HTTP, and executes
-   `browser.*` itself through `chrome.tabs` / `chrome.scripting`. Python never
-   controls Chrome, and there is no WebSocket, CDP, long polling, or second
-   browser.
-4. The result is typed into the chat composer as a `[[LOCAL_HANDS_V1:RESULT]]`
-   (or `[[LOCAL_HANDS_V1:RESULTS]]` for batches) message and sent.
-5. Request ids are deduped in both the bridge (in-memory LRU) and the extension
-   (`chrome.storage.local`): a repeated id returns the cached result and is
-   never re-executed.
+See [`PROTOCOL.md`](PROTOCOL.md) for the full wire format and exact schemas.
 
-## Setup (the only manual steps)
+## Quick start
 
-1. **Start the bridge** (leave it running):
+### 1. Create your config
 
-   ```
-   START_LOCAL_HANDS.bat
-   ```
+```powershell
+Copy-Item config.example.json config.json
+```
 
-   Check with `STATUS_LOCAL_HANDS.bat`.
+Edit `config.json` and set `allowed_roots` to the directories ChatGPT may access.
 
-2. **Load the extension** (one time):
-   - Open `chrome://extensions`
-   - Turn **Developer mode** ON
-   - **Load unpacked** → pick `C:\Users\MG\Desktop\chatgpt-local-hands\extension`
+### 2. Start the bridge
 
-   No token is needed — the bridge is localhost-only and unauthenticated.
-3. **Enable a chat**: open a ChatGPT chat and click **Initialize current chat**
-   in the popup. The extension sends a `[LOCAL_HANDS_V1_READY]` message into
-   that chat listing the available tools.
+```bat
+START_LOCAL_HANDS.bat
+```
 
-Everything else is automatic for that chat.
+Check it with:
 
-## Emergency STOP
+```bat
+STATUS_LOCAL_HANDS.bat
+```
 
-The popup's **Emergency STOP** disables processing for all chats, clears the
-pending extension queue, and marks the state paused. It does **not** stop the
-bridge or touch `config.json`. Click **Resume** (or
-re-Initialize) to continue. To stop the bridge itself: `STOP_LOCAL_HANDS.bat`.
+### 3. Load the extension
 
-## Modes (`config.json`)
+1. Open `chrome://extensions`.
+2. Enable **Developer mode**.
+3. Click **Load unpacked**.
+4. Select the repository's `extension` directory.
 
-| mode | filesystem | shell / process |
+### 4. Initialize a ChatGPT conversation
+
+Open the extension popup in a ChatGPT tab and click **Initialize current chat**.
+
+The extension inserts the Local Hands capability schema into that conversation. After that, ChatGPT can request supported local actions and receive the results directly in chat.
+
+## Permission modes
+
+| Mode | Filesystem | Shell / process |
 |---|---|---|
-| `safe` | read-only inside `allowed_roots` | disabled (writes/shell/process mutations rejected) |
-| `workspace_full_access` | full read/write inside `allowed_roots` | only if `shell_enabled` / `process_control` are true |
-| `full_pc_access` | unrestricted | only if the flags are true |
+| `safe` | Read-only inside `allowed_roots` | Disabled |
+| `workspace_full_access` | Read/write inside `allowed_roots` | Controlled by feature flags |
+| `full_pc_access` | Unrestricted filesystem | Controlled by feature flags |
 
-Path checks use resolved canonical paths (symlinks/junctions are resolved), so
-`../` or a link cannot escape `allowed_roots`. Restart the bridge after
-editing `config.json`.
+**Start with `safe`.** Expand permissions only when you understand the consequences.
 
-## Security notes
+Path validation uses canonical resolved paths, so traversal attempts, symlinks and junctions cannot silently escape a restricted root.
 
-- The bridge binds strictly to `127.0.0.1`; remote machines cannot reach it.
-- The bridge is intentionally unauthenticated: any process already running
-  locally on this PC could call it, so keep `mode` restrictive.
-- The extension talks to the bridge from the service worker with a fixed
-  `http://127.0.0.1:8787` host permission; the content script is injected only
-  into `https://chatgpt.com/*`.
-- There is no CORS wildcard and no browser-facing endpoint on the bridge.
-- Treat "the model decides what runs on your PC" as the threat model: keep
-  `mode` as restrictive as your workflow allows.
+## Safety model
+
+- Bridge binds strictly to `127.0.0.1`.
+- No wildcard LAN listener.
+- Filesystem access can be constrained to configured roots.
+- Shell and process-control capabilities can be disabled independently.
+- The extension executes only from completed assistant turns, never user messages.
+- Request IDs are deduplicated in both extension and bridge.
+- The popup includes an **Emergency STOP**.
+- Oversized output spills to local files instead of flooding the conversation.
+
+Read [`SECURITY.md`](SECURITY.md) before enabling broad permissions.
+
+> Localhost-only is not the same as zero-risk. Any local software able to reach the bridge may be able to invoke enabled capabilities. Treat broad modes as privileged access.
+
+## Emergency stop
+
+Use **Emergency STOP** in the extension popup to pause tool processing and clear the pending queue.
+
+To stop the bridge itself:
+
+```bat
+STOP_LOCAL_HANDS.bat
+```
 
 ## Tests
 
-```
+```powershell
 python tests\test_bridge.py
 ```
 
-Runs A-K against a real bridge instance (bind check, no-token operation,
-fs, shell, process.list, batch, idempotency, malformed JSON, path traversal,
-restart without any token). Exits 0 only when all pass.
+The test suite covers bridge binding, filesystem operations, shell/process behavior, batching, idempotency, malformed requests and path-traversal protection.
+
+## Project layout
+
+```text
+chatgpt-local-hands/
+├─ bridge.py
+├─ config.example.json
+├─ PROTOCOL.md
+├─ SECURITY.md
+├─ START_LOCAL_HANDS.bat
+├─ STATUS_LOCAL_HANDS.bat
+├─ STOP_LOCAL_HANDS.bat
+├─ extension/
+│  ├─ manifest.json
+│  ├─ background.js
+│  ├─ content.js
+│  ├─ popup.html
+│  ├─ popup.css
+│  └─ popup.js
+└─ tests/
+   └─ test_bridge.py
+```
 
 ## Troubleshooting
 
-- **Popup says Disconnected** — run `STATUS_LOCAL_HANDS.bat`; if STOPPED, run
-  `START_LOCAL_HANDS.bat`. Check `bridge.log` / `bridge.out`.
-- **401 from the bridge / UNAUTHORIZED in chat** — no token is used; if you see
-  this it is stale. Verify the bridge answers `STATUS_LOCAL_HANDS.bat` and reload
-  the extension at `chrome://extensions`.
-- **PAUSED with DOM ERROR** — ChatGPT's DOM changed (composer/send button not
-  found, or the send did not clear the composer). Read the error text in the
-  popup, update the selectors in `extension\content.js`, reload the extension
-  at `chrome://extensions`, then click **Resume**. The extension never blind-
-  retries sends.
-- **Port already in use** — `STOP_LOCAL_HANDS.bat`, then start again.
-- **Oversized output** — results over `max_inline_bytes` come back as
-  `truncated: true` with head/tail and a `full_output_path` under `output\`.
+**Extension says Disconnected**  
+Run `STATUS_LOCAL_HANDS.bat`. If the bridge is stopped, start it with `START_LOCAL_HANDS.bat` and reload the extension.
+
+**Port 8787 is already in use**  
+Stop the existing bridge with `STOP_LOCAL_HANDS.bat`, then start it again.
+
+**Chat shows a DOM error**  
+ChatGPT's page structure may have changed. Update selectors in `extension/content.js`, reload the unpacked extension and resume processing.
+
+**A result is truncated**  
+Large results are written under `output/`; the chat receives a compact head/tail plus the local output path.
+
+## Status
+
+Experimental and unofficial. Browser UI changes can require extension updates. This project is not affiliated with OpenAI or Google.
+
+---
+
+<div align="center">
+<sub>Reasoning stays in ChatGPT. Execution stays on your machine.</sub>
+</div>
