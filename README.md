@@ -14,7 +14,7 @@ Chrome extension → localhost bridge → filesystem, shell, processes, logs and
 ![Chrome](https://img.shields.io/badge/Chrome-MV3-111111?style=flat-square)
 ![Bridge](https://img.shields.io/badge/Bridge-127.0.0.1%3A8787-111111?style=flat-square)
 ![Platform](https://img.shields.io/badge/Platform-Windows-111111?style=flat-square)
-![CI](https://github.com/mikhail494/chatgpt-local-hands/actions/workflows/ci.yml/badge.svg)
+[![CI](https://github.com/mikhail494/chatgpt-local-hands/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/mikhail494/chatgpt-local-hands/actions/workflows/ci.yml)
 
 [Quick start](#quick-start) · [Safety model](#safety-model) · [Protocol](PROTOCOL.md) · [Security](SECURITY.md) · [Tests](#tests)
 
