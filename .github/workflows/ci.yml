@@ -1,0 +1,38 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  bridge-tests:
+    runs-on: windows-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Create isolated test config
+        shell: pwsh
+        run: |
+          @'
+          {
+            "host": "127.0.0.1",
+            "port": 8787,
+            "mode": "workspace_full_access",
+            "allowed_roots": ["${{ github.workspace }}"],
+            "shell_enabled": true,
+            "process_control": true,
+            "max_inline_bytes": 32768,
+            "command_timeout_seconds": 120
+          }
+          '@ | Set-Content -Encoding UTF8 config.json
+
+      - name: Run bridge test suite
+        run: python tests\\test_bridge.py
