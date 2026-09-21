@@ -1,10 +1,11 @@
-pycache/
+__pycache__/
 *.py[cod]
 *.log
 *.out
 *.pid
 output/
 data/
+tests/tmp/
 .env
 .venv/
 venv/
