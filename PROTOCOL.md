@@ -34,7 +34,7 @@ Your next user message will contain the execution outcome as a [[LOCAL_HANDS_V1:
 
 ```
 [[LOCAL_HANDS_V1:CALL]]
-{"id":"a1","tool":"fs.read","args":{"path":"C:\\Users\\MG\\notes.txt"}}
+{"id":"a1","tool":"fs.read","args":{"path":"C:\\Users\\YOUR_NAME\\notes.txt"}}
 [[/LOCAL_HANDS_V1:CALL]]
 ```
 
@@ -42,7 +42,7 @@ Your next user message will contain the execution outcome as a [[LOCAL_HANDS_V1:
 
 ```
 [[LOCAL_HANDS_V1:BATCH]]
-{"calls":[{"id":"b1","tool":"process.list","args":{}},{"id":"b2","tool":"file.tail","args":{"path":"C:\\Users\\MG\\app.log","lines":50}}]}
+{"calls":[{"id":"b1","tool":"process.list","args":{}},{"id":"b2","tool":"file.tail","args":{"path":"C:\\Users\\YOUR_NAME\\app.log","lines":50}}]}
 [[/LOCAL_HANDS_V1:BATCH]]
 ```
 
@@ -89,7 +89,7 @@ If execution was blocked (paused/stopped), the reply contains a single
 ### POST /invoke request
 
 ```json
-{"id":"a1","tool":"fs.read","args":{"path":"C:\\Users\\MG\\notes.txt"}}
+{"id":"a1","tool":"fs.read","args":{"path":"C:\\Users\\YOUR_NAME\\notes.txt"}}
 ```
 
 HTTP 200 → result envelope (section 3). HTTP 400 → `{"error":{"code":"...","message":"..."}}`
@@ -179,7 +179,7 @@ Any inline string field larger than `max_inline_bytes` (config, default
 32768) is replaced with:
 
 ```json
-{"truncated": true, "total_bytes": 123456, "head": "...", "tail": "...", "full_output_path": "C:\\Users\\MG\\Desktop\\chatgpt-local-hands\\output\\<sha256-prefix>.txt"}
+{"truncated": true, "total_bytes": 123456, "head": "...", "tail": "...", "full_output_path": "C:\\Users\\YOUR_NAME\\Desktop\\chatgpt-local-hands\\output\\<sha256-prefix>.txt"}
 ```
 
 ## 6. Safety rules (enforced, not advisory)
