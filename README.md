@@ -12,6 +12,8 @@ Chrome extension → localhost bridge → filesystem, shell, processes, logs and
 ![Platform](https://img.shields.io/badge/Platform-Windows-111111?style=flat-square)
 ![CI](https://github.com/mikhail494/chatgpt-local-hands/actions/workflows/ci.yml/badge.svg)
 
+[Quick start](#quick-start) · [Safety model](#safety-model) · [Protocol](PROTOCOL.md) · [Security](SECURITY.md) · [Tests](#tests)
+
 </div>
 
 ---
