@@ -1,0 +1,31 @@
+{
+  "manifest_version": 3,
+  "name": "Local Hands for ChatGPT",
+  "version": "1.0.0",
+  "description": "Lets ChatGPT in this browser execute local tools on your PC through a local, localhost-only bridge. The LLM stays in the browser.",
+  "permissions": [
+    "storage",
+    "tabs",
+    "scripting",
+    "activeTab"
+  ],
+  "host_permissions": [
+    "https://chatgpt.com/*",
+    "http://127.0.0.1:8787/*",
+    "<all_urls>"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": ["https://chatgpt.com/*"],
+      "js": ["content.js"],
+      "run_at": "document_idle"
+    }
+  ],
+  "action": {
+    "default_title": "Local Hands",
+    "default_popup": "popup.html"
+  }
+}

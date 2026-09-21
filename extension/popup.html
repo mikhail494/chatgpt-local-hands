@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Local Hands</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <header>
+    <h1>Local Hands</h1>
+    <span id="dot" class="dot"></span>
+  </header>
+
+  <section class="row">
+    <label>Bridge</label>
+    <span id="bridge-status">…</span>
+    <button id="btn-refresh" title="Check bridge health">↻</button>
+  </section>
+
+  <section class="row">
+    <label>Address</label>
+    <span id="addr">127.0.0.1:8787</span>
+  </section>
+
+  <section class="row">
+    <label>Mode</label>
+    <span id="mode">…</span>
+  </section>
+
+  <section class="row">
+    <label>Current chat automation</label>
+    <span id="chat-state">…</span>
+  </section>
+
+  <section class="row actions">
+    <button id="btn-init">Initialize current chat</button>
+    <button id="btn-pause" class="toggle">Pause: off</button>
+    <button id="btn-resume" class="toggle hidden">Resume</button>
+    <button id="btn-stop" class="danger">Emergency STOP</button>
+  </section>
+
+  <section class="row">
+    <label>Last tool calls (20)</label>
+    <ul id="calls"></ul>
+  </section>
+
+  <section id="error-box" class="error hidden"></section>
+
+  <footer>
+    <span id="version">v1.0.0</span>
+  </footer>
+
+  <script src="popup.js"></script>
+</body>
+</html>

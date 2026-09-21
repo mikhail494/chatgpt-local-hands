@@ -1,0 +1,13 @@
+pycache/
+*.py[cod]
+*.log
+*.out
+*.pid
+output/
+data/
+.env
+.venv/
+venv/
+.DS_Store
+Thumbs.db
+config.json
