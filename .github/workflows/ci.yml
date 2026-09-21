@@ -21,18 +21,18 @@ jobs:
       - name: Create isolated test config
         shell: pwsh
         run: |
-          @'
-          {
-            "host": "127.0.0.1",
-            "port": 8787,
-            "mode": "workspace_full_access",
-            "allowed_roots": ["${{ github.workspace }}"],
-            "shell_enabled": true,
-            "process_control": true,
-            "max_inline_bytes": 32768,
-            "command_timeout_seconds": 120
+          $root = $env:GITHUB_WORKSPACE -replace '\\', '/'
+          $cfg = @{
+            host = '127.0.0.1'
+            port = 8787
+            mode = 'workspace_full_access'
+            allowed_roots = @($root)
+            shell_enabled = $true
+            process_control = $true
+            max_inline_bytes = 32768
+            command_timeout_seconds = 120
           }
-          '@ | Set-Content -Encoding UTF8 config.json
+          $cfg | ConvertTo-Json | Set-Content -Encoding UTF8 config.json
 
       - name: Run bridge test suite
         run: python tests\\test_bridge.py
