@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="docs/hero.svg" alt="ChatGPT Local Hands" width="100%" />
+</p>
+
 <div align="center">
 
 # ChatGPT Local Hands
