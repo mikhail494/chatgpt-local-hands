@@ -1,0 +1,10 @@
+{
+  "host": "127.0.0.1",
+  "port": 8787,
+  "mode": "safe",
+  "allowed_roots": ["C:/Users/YOUR_NAME/Desktop"],
+  "shell_enabled": false,
+  "process_control": false,
+  "max_inline_bytes": 32768,
+  "command_timeout_seconds": 120
+}
